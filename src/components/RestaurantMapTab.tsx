@@ -9,14 +9,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { SvgUri } from 'react-native-svg';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RestaurantStats, SkiArea } from '../types';
@@ -182,33 +174,20 @@ function MapPopup({ restaurant, onClose, onNavigate, highlightKey }: MapPopupPro
   );
 }
 
-// Default aspect ratio for maps (will be updated when image loads)
-const DEFAULT_ASPECT_RATIO = 0.707; // ~A4 landscape
-
 export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
   const navigation = useNavigation<NavigationProp>();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const { width: screenWidth } = useWindowDimensions();
   const [showPins, setShowPins] = useState(true);
   const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantStats | null>(null);
-  const [imageSize, setImageSize] = useState({ width: screenWidth, height: screenWidth * DEFAULT_ASPECT_RATIO });
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [sortBy, setSortBy] = useState<SortKey>('avg_total_score');
   const [onlyService, setOnlyService] = useState(false);
   const [onlyEggnog, setOnlyEggnog] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  // Reanimated shared values for gestures
-  const scale = useSharedValue(1);
-  const savedScale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const savedTranslateX = useSharedValue(0);
-  const savedTranslateY = useSharedValue(0);
-
   const mapUrl = skiArea?.map_image
     ? supabase.storage.from('maps').getPublicUrl(skiArea.map_image).data.publicUrl
     : null;
-
-  const isSvg = mapUrl?.toLowerCase().endsWith('.svg');
 
   const rankingMap = useMemo(() => {
     const filtered = restaurants.filter(r => {
@@ -243,55 +222,6 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
     }
   }, [selectedRestaurant, navigation]);
 
-  // Update zoom level for pin scaling
-  const updateZoomLevel = useCallback((newZoom: number) => {
-    setZoomLevel(newZoom);
-  }, []);
-
-  // Pinch gesture for zooming
-  const pinchGesture = Gesture.Pinch()
-    .onUpdate((e) => {
-      scale.value = savedScale.value * e.scale;
-      runOnJS(updateZoomLevel)(scale.value);
-    })
-    .onEnd(() => {
-      // Clamp scale between 1 and 10
-      if (scale.value < 1) {
-        scale.value = withSpring(1);
-        savedScale.value = 1;
-        runOnJS(updateZoomLevel)(1);
-      } else if (scale.value > 10) {
-        scale.value = withSpring(10);
-        savedScale.value = 10;
-        runOnJS(updateZoomLevel)(10);
-      } else {
-        savedScale.value = scale.value;
-      }
-    });
-
-  // Pan gesture for moving
-  const panGesture = Gesture.Pan()
-    .onUpdate((e) => {
-      translateX.value = savedTranslateX.value + e.translationX;
-      translateY.value = savedTranslateY.value + e.translationY;
-    })
-    .onEnd(() => {
-      savedTranslateX.value = translateX.value;
-      savedTranslateY.value = translateY.value;
-    });
-
-  // Combine gestures
-  const composedGesture = Gesture.Simultaneous(pinchGesture, panGesture);
-
-  // Animated style for the map container
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-  }));
-
   if (!mapUrl) {
     return (
       <View style={styles.container}>
@@ -306,39 +236,6 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
       </View>
     );
   }
-
-  // Render map content (SVG or Image)
-  const renderMapContent = () => {
-    if (isSvg) {
-      return (
-        <SvgUri
-          uri={mapUrl}
-          width={imageSize.width}
-          height={imageSize.height}
-          onLoad={() => {
-            // SVG loaded successfully
-            console.log('[Map] SVG loaded:', mapUrl);
-          }}
-        />
-      );
-    } else {
-      return (
-        <Image
-          source={{ uri: mapUrl }}
-          style={{ width: imageSize.width, height: imageSize.height }}
-          contentFit="contain"
-          onLoad={(e) => {
-            const { width, height } = e.source;
-            const aspectRatio = height / width;
-            setImageSize({
-              width: screenWidth,
-              height: screenWidth * aspectRatio,
-            });
-          }}
-        />
-      );
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -386,11 +283,38 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
         </View>
       </View>
 
-      {/* Map with Gesture Handler */}
+      {/* Map with ScrollView Zoom */}
       <View style={styles.mapContainer}>
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View style={[styles.mapContent, animatedStyle]}>
-            {renderMapContent()}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          maximumZoomScale={10}
+          minimumZoomScale={1}
+          bouncesZoom={true}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          onScroll={(e) => {
+            const newZoom = e.nativeEvent.zoomScale || 1;
+            if (Math.abs(newZoom - zoomLevel) > 0.05) {
+              setZoomLevel(newZoom);
+            }
+          }}
+          scrollEventThrottle={16}
+        >
+          <View>
+            <Image
+              source={{ uri: mapUrl }}
+              style={{ width: imageSize.width || screenWidth, height: imageSize.height || screenWidth * 0.707 }}
+              contentFit="contain"
+              onLoad={(e) => {
+                const { width, height } = e.source;
+                const aspectRatio = height / width;
+                setImageSize({
+                  width: screenWidth,
+                  height: screenWidth * aspectRatio,
+                });
+              }}
+            />
 
             {showPins && imageSize.width > 0 && (
               <View style={[StyleSheet.absoluteFill, { width: imageSize.width, height: imageSize.height }]}>
@@ -408,8 +332,8 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
                 ))}
               </View>
             )}
-          </Animated.View>
-        </GestureDetector>
+          </View>
+        </ScrollView>
 
         {selectedRestaurant && (
           <MapPopup
@@ -432,10 +356,12 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     position: 'relative',
-    overflow: 'hidden',
   },
-  mapContent: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   headerRow: {
     flexDirection: 'row',
