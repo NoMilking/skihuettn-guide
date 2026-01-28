@@ -223,7 +223,9 @@ export default function RatingScreen({ route }: Props) {
       // Upload photos if any (only new local photos, not existing URLs)
       if (photos.length > 0 && ratingId) {
         try {
-          const newPhotos = photos.filter(photo => photo.uri.startsWith('file://'));
+          // Accept both native (file://) and web (blob:, data:) URIs
+          // Exclude only existing Supabase URLs (https://)
+          const newPhotos = photos.filter(photo => !photo.uri.startsWith('https://'));
           if (newPhotos.length > 0) {
             await Promise.all(
               newPhotos.map(photo => uploadPhoto(ratingId!, restaurantId, photo.uri))

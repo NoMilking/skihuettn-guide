@@ -1,7 +1,39 @@
+import { Platform } from 'react-native';
 import { supabase } from './supabase';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { readAsStringAsync } from 'expo-file-system/legacy';
 import { Photo } from '../types';
+
+/**
+ * Converts a data URI to Uint8Array
+ */
+function dataUriToUint8Array(dataUri: string): Uint8Array {
+  const base64 = dataUri.split(',')[1];
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
+ * Reads an image from a URI and returns it as Uint8Array (Web version)
+ */
+async function readImageAsArrayWeb(uri: string): Promise<Uint8Array> {
+  // Handle data: URIs directly
+  if (uri.startsWith('data:')) {
+    console.log('[Photos] Web: Processing data URI...');
+    return dataUriToUint8Array(uri);
+  }
+
+  // Handle blob: URIs via fetch
+  console.log('[Photos] Web: Fetching blob URI...');
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  const arrayBuffer = await blob.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
+}
 
 /**
  * Uploads a photo for a rating.
@@ -22,30 +54,58 @@ export async function uploadPhoto(
   uri: string
 ): Promise<Photo> {
   try {
-    // Step 1: Compress image to 1200px width
-    console.log('[Photos] Compressing image...');
-    const compressed = await ImageManipulator.manipulateAsync(
-      uri,
-      [{ resize: { width: 1200 } }],
-      { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
-    );
+    let imageUri = uri;
+    let contentType = 'image/jpeg';
+
+    // Step 1: Try to compress image (may fail on some platforms)
+    if (Platform.OS === 'web') {
+      console.log('[Photos] Web: Attempting compression...');
+      try {
+        const compressed = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 1200 } }],
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        );
+        imageUri = compressed.uri;
+        console.log('[Photos] Web: Compression successful');
+      } catch (compressError) {
+        // Compression failed (common on iOS Safari) - use original
+        console.warn('[Photos] Web: Compression failed, using original image:', compressError);
+        // Keep original URI
+      }
+    } else {
+      // Native: Compression should work
+      console.log('[Photos] Native: Compressing image...');
+      const compressed = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 1200 } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      imageUri = compressed.uri;
+    }
 
     // Step 2: Create file path
     const timestamp = Date.now();
     const fileName = `${ratingId}_${timestamp}.jpg`;
     const storagePath = `restaurants/${restaurantId}/${fileName}`;
 
-    // Step 3: Read file as base64 for upload
-    console.log('[Photos] Reading file...');
-    const base64 = await readAsStringAsync(compressed.uri, {
-      encoding: 'base64',
-    });
+    // Step 3: Read file - platform-specific handling
+    console.log('[Photos] Reading file...', { platform: Platform.OS });
+    let bytes: Uint8Array;
 
-    // Convert base64 to array buffer
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    if (Platform.OS === 'web') {
+      bytes = await readImageAsArrayWeb(imageUri);
+      console.log('[Photos] Web: Got bytes:', bytes.length);
+    } else {
+      // Native: Use expo-file-system
+      const base64 = await readAsStringAsync(imageUri, {
+        encoding: 'base64',
+      });
+      const binaryString = atob(base64);
+      bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
     }
 
     // Step 4: Upload to Supabase Storage
@@ -53,7 +113,7 @@ export async function uploadPhoto(
     const { error: uploadError } = await supabase.storage
       .from('photos')
       .upload(storagePath, bytes.buffer, {
-        contentType: 'image/jpeg',
+        contentType,
         upsert: false,
       });
 
