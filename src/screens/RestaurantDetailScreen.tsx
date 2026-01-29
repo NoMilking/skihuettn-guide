@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   FlatList,
   Modal,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -49,6 +50,7 @@ export default function RestaurantDetailScreen({ route }: Props) {
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
   const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set());
   const [likingInProgress, setLikingInProgress] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
 
   // Reload data when screen comes into focus (e.g., after returning from rating screen)
   useFocusEffect(
@@ -291,34 +293,64 @@ export default function RestaurantDetailScreen({ route }: Props) {
 
           {/* Image Gallery */}
           {selectedPhotoIndex !== null && (
-            <FlatList
-              data={photos}
-              horizontal
-              pagingEnabled
-              initialScrollIndex={selectedPhotoIndex}
-              getItemLayout={(data, index) => ({
-                length: Dimensions.get('window').width,
-                offset: Dimensions.get('window').width * index,
-                index,
-              })}
-              keyExtractor={item => item.id}
-              renderItem={({ item }) => (
-                <View style={styles.imageViewerPage}>
-                  <Image
-                    source={{ uri: getPhotoUrl(item.storage_path) }}
-                    style={styles.fullscreenImage}
-                    resizeMode="contain"
-                  />
-                </View>
+            <>
+              <FlatList
+                ref={flatListRef}
+                data={photos}
+                horizontal
+                pagingEnabled
+                scrollEnabled={Platform.OS !== 'web'}
+                initialScrollIndex={selectedPhotoIndex}
+                getItemLayout={(data, index) => ({
+                  length: Dimensions.get('window').width,
+                  offset: Dimensions.get('window').width * index,
+                  index,
+                })}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => (
+                  <View style={styles.imageViewerPage}>
+                    <Image
+                      source={{ uri: getPhotoUrl(item.storage_path) }}
+                      style={styles.fullscreenImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                )}
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(event) => {
+                  const newIndex = Math.round(
+                    event.nativeEvent.contentOffset.x / Dimensions.get('window').width
+                  );
+                  setSelectedPhotoIndex(newIndex);
+                }}
+              />
+
+              {/* Web Navigation Arrows */}
+              {Platform.OS === 'web' && selectedPhotoIndex > 0 && (
+                <TouchableOpacity
+                  style={[styles.navArrow, styles.navArrowLeft]}
+                  onPress={() => {
+                    const newIndex = selectedPhotoIndex - 1;
+                    flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
+                    setSelectedPhotoIndex(newIndex);
+                  }}
+                >
+                  <Text style={styles.navArrowText}>{'<'}</Text>
+                </TouchableOpacity>
               )}
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={(event) => {
-                const newIndex = Math.round(
-                  event.nativeEvent.contentOffset.x / Dimensions.get('window').width
-                );
-                setSelectedPhotoIndex(newIndex);
-              }}
-            />
+              {Platform.OS === 'web' && selectedPhotoIndex < photos.length - 1 && (
+                <TouchableOpacity
+                  style={[styles.navArrow, styles.navArrowRight]}
+                  onPress={() => {
+                    const newIndex = selectedPhotoIndex + 1;
+                    flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
+                    setSelectedPhotoIndex(newIndex);
+                  }}
+                >
+                  <Text style={styles.navArrowText}>{'>'}</Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
 
           {/* Like Button */}
@@ -810,5 +842,28 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
+  },
+  navArrow: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -25,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  navArrowLeft: {
+    left: 16,
+  },
+  navArrowRight: {
+    right: 16,
+  },
+  navArrowText: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '700',
   },
 });
