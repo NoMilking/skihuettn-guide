@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Switch,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -27,6 +26,7 @@ import { useDevice } from '../hooks/useDevice';
 import { calculateTotalScore } from '../logic/scoring';
 import { getScoreColor, getScoreBackgroundColor } from '../logic/color';
 import { RootStackParamList } from '../navigation/RootNavigator';
+import { showAlert, showConfirm } from '../utils/alert';
 
 interface Props {
   route: {
@@ -131,7 +131,7 @@ export default function RatingScreen({ route }: Props) {
       }
     } catch (error) {
       console.error('Error loading rating data:', error);
-      Alert.alert('Fehler', 'Daten konnten nicht geladen werden.');
+      showAlert('Fehler', 'Daten konnten nicht geladen werden.');
     } finally {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export default function RatingScreen({ route }: Props) {
 
   const pickImage = async () => {
     if (photos.length >= 3) {
-      Alert.alert('Limit erreicht', 'Maximal 3 Fotos erlaubt');
+      showAlert('Limit erreicht', 'Maximal 3 Fotos erlaubt');
       return;
     }
 
@@ -155,7 +155,7 @@ export default function RatingScreen({ route }: Props) {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Fehler', 'Foto konnte nicht ausgewählt werden.');
+      showAlert('Fehler', 'Foto konnte nicht ausgewählt werden.');
     }
   };
 
@@ -168,7 +168,7 @@ export default function RatingScreen({ route }: Props) {
         await deletePhoto(photo.photoId);
       } catch (error) {
         console.error('Error deleting photo:', error);
-        Alert.alert('Fehler', 'Foto konnte nicht gelöscht werden.');
+        showAlert('Fehler', 'Foto konnte nicht gelöscht werden.');
         return;
       }
     }
@@ -179,7 +179,7 @@ export default function RatingScreen({ route }: Props) {
 
   const handleSave = async () => {
     if (!deviceId) {
-      Alert.alert('Fehler', 'Gerät nicht identifiziert.');
+      showAlert('Fehler', 'Gerät nicht identifiziert.');
       return;
     }
 
@@ -233,52 +233,45 @@ export default function RatingScreen({ route }: Props) {
           }
         } catch (photoError) {
           console.error('Error uploading photos:', photoError);
-          Alert.alert(
+          showAlert(
             'Warnung',
             'Bewertung wurde gespeichert, aber einige Fotos konnten nicht hochgeladen werden.'
           );
         }
       }
 
-      Alert.alert(
+      showAlert(
         'Erfolg',
         isEditing ? 'Bewertung wurde aktualisiert!' : 'Bewertung wurde gespeichert!'
       );
       navigation.goBack();
     } catch (error: any) {
       console.error('Error saving rating:', error);
-      Alert.alert('Fehler', error.message || 'Bewertung konnte nicht gespeichert werden.');
+      showAlert('Fehler', error.message || 'Bewertung konnte nicht gespeichert werden.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    showConfirm(
       'Bewertung löschen',
       'Bist du sicher, dass du diese Bewertung löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: async () => {
-            if (!deviceId) return;
+      async () => {
+        if (!deviceId) return;
 
-            try {
-              setDeleting(true);
-              await deleteRating(restaurantId, deviceId);
-              Alert.alert('Erfolg', 'Bewertung wurde gelöscht.');
-              navigation.goBack();
-            } catch (error: any) {
-              console.error('Error deleting rating:', error);
-              Alert.alert('Fehler', error.message || 'Bewertung konnte nicht gelöscht werden.');
-            } finally {
-              setDeleting(false);
-            }
-          },
-        },
-      ]
+        try {
+          setDeleting(true);
+          await deleteRating(restaurantId, deviceId);
+          showAlert('Erfolg', 'Bewertung wurde gelöscht.');
+          navigation.goBack();
+        } catch (error: any) {
+          console.error('Error deleting rating:', error);
+          showAlert('Fehler', error.message || 'Bewertung konnte nicht gelöscht werden.');
+        } finally {
+          setDeleting(false);
+        }
+      }
     );
   };
 
