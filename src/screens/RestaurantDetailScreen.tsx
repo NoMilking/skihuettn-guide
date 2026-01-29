@@ -292,65 +292,64 @@ export default function RestaurantDetailScreen({ route }: Props) {
           </TouchableOpacity>
 
           {/* Image Gallery */}
-          {selectedPhotoIndex !== null && (
+          {selectedPhotoIndex !== null && Platform.OS === 'web' && (
             <>
-              <FlatList
-                ref={flatListRef}
-                data={photos}
-                horizontal
-                pagingEnabled
-                scrollEnabled={Platform.OS !== 'web'}
-                initialScrollIndex={selectedPhotoIndex}
-                getItemLayout={(data, index) => ({
-                  length: Dimensions.get('window').width,
-                  offset: Dimensions.get('window').width * index,
-                  index,
-                })}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                  <View style={styles.imageViewerPage}>
-                    <Image
-                      source={{ uri: getPhotoUrl(item.storage_path) }}
-                      style={styles.fullscreenImage}
-                      resizeMode="contain"
-                    />
-                  </View>
-                )}
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={(event) => {
-                  const newIndex = Math.round(
-                    event.nativeEvent.contentOffset.x / Dimensions.get('window').width
-                  );
-                  setSelectedPhotoIndex(newIndex);
-                }}
-              />
+              <View style={styles.imageViewerPage}>
+                <Image
+                  source={{ uri: getPhotoUrl(photos[selectedPhotoIndex].storage_path) }}
+                  style={styles.fullscreenImage}
+                  resizeMode="contain"
+                />
+              </View>
 
-              {/* Web Navigation Arrows */}
-              {Platform.OS === 'web' && selectedPhotoIndex > 0 && (
+              {selectedPhotoIndex > 0 && (
                 <TouchableOpacity
                   style={[styles.navArrow, styles.navArrowLeft]}
-                  onPress={() => {
-                    const newIndex = selectedPhotoIndex - 1;
-                    flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
-                    setSelectedPhotoIndex(newIndex);
-                  }}
+                  onPress={() => setSelectedPhotoIndex(selectedPhotoIndex - 1)}
                 >
                   <Text style={styles.navArrowText}>{'<'}</Text>
                 </TouchableOpacity>
               )}
-              {Platform.OS === 'web' && selectedPhotoIndex < photos.length - 1 && (
+              {selectedPhotoIndex < photos.length - 1 && (
                 <TouchableOpacity
                   style={[styles.navArrow, styles.navArrowRight]}
-                  onPress={() => {
-                    const newIndex = selectedPhotoIndex + 1;
-                    flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
-                    setSelectedPhotoIndex(newIndex);
-                  }}
+                  onPress={() => setSelectedPhotoIndex(selectedPhotoIndex + 1)}
                 >
                   <Text style={styles.navArrowText}>{'>'}</Text>
                 </TouchableOpacity>
               )}
             </>
+          )}
+          {selectedPhotoIndex !== null && Platform.OS !== 'web' && (
+            <FlatList
+              ref={flatListRef}
+              data={photos}
+              horizontal
+              pagingEnabled
+              initialScrollIndex={selectedPhotoIndex}
+              getItemLayout={(data, index) => ({
+                length: Dimensions.get('window').width,
+                offset: Dimensions.get('window').width * index,
+                index,
+              })}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.imageViewerPage}>
+                  <Image
+                    source={{ uri: getPhotoUrl(item.storage_path) }}
+                    style={styles.fullscreenImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(event) => {
+                const newIndex = Math.round(
+                  event.nativeEvent.contentOffset.x / Dimensions.get('window').width
+                );
+                setSelectedPhotoIndex(newIndex);
+              }}
+            />
           )}
 
           {/* Like Button */}
