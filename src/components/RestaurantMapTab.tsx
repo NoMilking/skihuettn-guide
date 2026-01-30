@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef, memo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -184,6 +185,22 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
   const [onlyService, setOnlyService] = useState(false);
   const [onlyEggnog, setOnlyEggnog] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const webMapRef = useRef<View>(null);
+
+  // Web: Zoom via mouse wheel
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !webMapRef.current) return;
+    const element = webMapRef.current as unknown as HTMLElement;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setZoomLevel(prev => {
+        const delta = e.deltaY > 0 ? -0.3 : 0.3;
+        return Math.min(10, Math.max(1, prev + delta));
+      });
+    };
+    element.addEventListener('wheel', handleWheel, { passive: false });
+    return () => element.removeEventListener('wheel', handleWheel);
+  });
 
   const mapUrl = skiArea?.map_image
     ? supabase.storage.from('maps').getPublicUrl(skiArea.map_image).data.publicUrl
@@ -283,57 +300,113 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
         </View>
       </View>
 
-      {/* Map with ScrollView Zoom */}
-      <View style={styles.mapContainer}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          maximumZoomScale={10}
-          minimumZoomScale={1}
-          bouncesZoom={true}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          onScroll={(e) => {
-            const newZoom = e.nativeEvent.zoomScale || 1;
-            if (Math.abs(newZoom - zoomLevel) > 0.05) {
-              setZoomLevel(newZoom);
-            }
-          }}
-          scrollEventThrottle={16}
-        >
-          <View>
-            <Image
-              source={{ uri: mapUrl }}
-              style={{ width: imageSize.width || screenWidth, height: imageSize.height || screenWidth * 0.707 }}
-              contentFit="contain"
-              onLoad={(e) => {
-                const { width, height } = e.source;
-                const aspectRatio = height / width;
-                setImageSize({
-                  width: screenWidth,
-                  height: screenWidth * aspectRatio,
-                });
-              }}
-            />
+      {/* Map with Zoom */}
+      <View style={styles.mapContainer} ref={webMapRef}>
+        {Platform.OS === 'web' ? (
+          /* Web: ScrollView for pan + transform scale for zoom */
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            horizontal={false}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ width: (imageSize.width || screenWidth) * zoomLevel }}
+            >
+              <View style={{
+                width: imageSize.width || screenWidth,
+                height: imageSize.height || screenWidth * 0.707,
+                transform: [{ scale: zoomLevel }],
+                transformOrigin: 'top left',
+              }}>
+                <Image
+                  source={{ uri: mapUrl }}
+                  style={{ width: imageSize.width || screenWidth, height: imageSize.height || screenWidth * 0.707 }}
+                  contentFit="contain"
+                  onLoad={(e) => {
+                    const { width, height } = e.source;
+                    const aspectRatio = height / width;
+                    setImageSize({
+                      width: screenWidth,
+                      height: screenWidth * aspectRatio,
+                    });
+                  }}
+                />
 
-            {showPins && imageSize.width > 0 && (
-              <View style={[StyleSheet.absoluteFill, { width: imageSize.width, height: imageSize.height }]}>
-                {restaurants.map((r) => (
-                  <MapPin
-                    key={r.restaurant_id}
-                    restaurant={r}
-                    x={r.x * imageSize.width}
-                    y={r.y * imageSize.height}
-                    onPress={() => handlePinPress(r)}
-                    isGrayedOut={isGrayedOut(r)}
-                    rank={rankingMap.get(r.restaurant_id)}
-                    zoomLevel={zoomLevel}
-                  />
-                ))}
+                {showPins && imageSize.width > 0 && (
+                  <View style={[StyleSheet.absoluteFill, { width: imageSize.width, height: imageSize.height }]}>
+                    {restaurants.map((r) => (
+                      <MapPin
+                        key={r.restaurant_id}
+                        restaurant={r}
+                        x={r.x * imageSize.width}
+                        y={r.y * imageSize.height}
+                        onPress={() => handlePinPress(r)}
+                        isGrayedOut={isGrayedOut(r)}
+                        rank={rankingMap.get(r.restaurant_id)}
+                        zoomLevel={zoomLevel}
+                      />
+                    ))}
+                  </View>
+                )}
               </View>
-            )}
-          </View>
-        </ScrollView>
+            </ScrollView>
+          </ScrollView>
+        ) : (
+          /* Native: ScrollView with built-in zoom */
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            maximumZoomScale={10}
+            minimumZoomScale={1}
+            bouncesZoom={true}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            onScroll={(e) => {
+              const newZoom = e.nativeEvent.zoomScale || 1;
+              if (Math.abs(newZoom - zoomLevel) > 0.05) {
+                setZoomLevel(newZoom);
+              }
+            }}
+            scrollEventThrottle={16}
+          >
+            <View>
+              <Image
+                source={{ uri: mapUrl }}
+                style={{ width: imageSize.width || screenWidth, height: imageSize.height || screenWidth * 0.707 }}
+                contentFit="contain"
+                onLoad={(e) => {
+                  const { width, height } = e.source;
+                  const aspectRatio = height / width;
+                  setImageSize({
+                    width: screenWidth,
+                    height: screenWidth * aspectRatio,
+                  });
+                }}
+              />
+
+              {showPins && imageSize.width > 0 && (
+                <View style={[StyleSheet.absoluteFill, { width: imageSize.width, height: imageSize.height }]}>
+                  {restaurants.map((r) => (
+                    <MapPin
+                      key={r.restaurant_id}
+                      restaurant={r}
+                      x={r.x * imageSize.width}
+                      y={r.y * imageSize.height}
+                      onPress={() => handlePinPress(r)}
+                      isGrayedOut={isGrayedOut(r)}
+                      rank={rankingMap.get(r.restaurant_id)}
+                      zoomLevel={zoomLevel}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        )}
 
         {selectedRestaurant && (
           <MapPopup
