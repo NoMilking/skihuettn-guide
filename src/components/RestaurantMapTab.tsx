@@ -332,56 +332,55 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
       {/* Map with Zoom */}
       <View style={styles.mapContainer}>
         {Platform.OS === 'web' ? (
-          /* Web: div with overflow for pan + transform scale for zoom */
+          /* Web: physically resize content, native scroll for panning */
           <View
             ref={webMapRef}
             style={{
               flex: 1,
-              overflow: 'auto' as any,
-              touchAction: 'none',
+              overflow: 'auto',
+              touchAction: 'pan-x pan-y',
             } as any}
           >
             <View style={{
               width: (imageSize.width || screenWidth) * zoomLevel,
               height: (imageSize.height || screenWidth * 0.707) * zoomLevel,
             }}>
-              <View style={{
-                width: imageSize.width || screenWidth,
-                height: imageSize.height || screenWidth * 0.707,
-                transform: [{ scale: zoomLevel }],
-                transformOrigin: 'top left',
-              }}>
-                <Image
-                  source={{ uri: mapUrl }}
-                  style={{ width: imageSize.width || screenWidth, height: imageSize.height || screenWidth * 0.707 }}
-                  contentFit="contain"
-                  onLoad={(e) => {
-                    const { width, height } = e.source;
-                    const aspectRatio = height / width;
-                    setImageSize({
-                      width: screenWidth,
-                      height: screenWidth * aspectRatio,
-                    });
-                  }}
-                />
+              <Image
+                source={{ uri: mapUrl }}
+                style={{
+                  width: (imageSize.width || screenWidth) * zoomLevel,
+                  height: (imageSize.height || screenWidth * 0.707) * zoomLevel,
+                }}
+                contentFit="contain"
+                onLoad={(e) => {
+                  const { width, height } = e.source;
+                  const aspectRatio = height / width;
+                  setImageSize({
+                    width: screenWidth,
+                    height: screenWidth * aspectRatio,
+                  });
+                }}
+              />
 
-                {showPins && imageSize.width > 0 && (
-                  <View style={[StyleSheet.absoluteFill, { width: imageSize.width, height: imageSize.height }]}>
-                    {restaurants.map((r) => (
-                      <MapPin
-                        key={r.restaurant_id}
-                        restaurant={r}
-                        x={r.x * imageSize.width}
-                        y={r.y * imageSize.height}
-                        onPress={() => handlePinPress(r)}
-                        isGrayedOut={isGrayedOut(r)}
-                        rank={rankingMap.get(r.restaurant_id)}
-                        zoomLevel={zoomLevel}
-                      />
-                    ))}
-                  </View>
-                )}
-              </View>
+              {showPins && imageSize.width > 0 && (
+                <View style={[StyleSheet.absoluteFill, {
+                  width: (imageSize.width) * zoomLevel,
+                  height: (imageSize.height) * zoomLevel,
+                }]}>
+                  {restaurants.map((r) => (
+                    <MapPin
+                      key={r.restaurant_id}
+                      restaurant={r}
+                      x={r.x * imageSize.width * zoomLevel}
+                      y={r.y * imageSize.height * zoomLevel}
+                      onPress={() => handlePinPress(r)}
+                      isGrayedOut={isGrayedOut(r)}
+                      rank={rankingMap.get(r.restaurant_id)}
+                      zoomLevel={zoomLevel}
+                    />
+                  ))}
+                </View>
+              )}
             </View>
           </View>
         ) : (
