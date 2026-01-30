@@ -42,8 +42,11 @@ const MapPin = memo(function MapPin({ restaurant, onPress, x, y, rank, isGrayedO
     ? '#6B7280'
     : getScoreColor(restaurant.avg_total_score, restaurant.rating_count);
 
-  // Shrink half as fast: use square root for gentler scaling
-  const inverseScale = 1 / Math.sqrt(zoomLevel);
+  // On native: sqrt for gentler scaling (ScrollView also scales content)
+  // On web: fourth root for even gentler scaling (no container zoom multiplier)
+  const inverseScale = Platform.OS === 'web'
+    ? 1 / Math.pow(zoomLevel, 0.25)
+    : 1 / Math.sqrt(zoomLevel);
 
   return (
     <TouchableOpacity
@@ -186,9 +189,9 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
   const [onlyEggnog, setOnlyEggnog] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const webMapRef = useRef<View>(null);
-  const pinchRef = useRef<{ initialDistance: number; initialZoom: number } | null>(null);
+  const pinchRef = useRef<{ initialDistance: number; initialZoom: number; centerX: number; centerY: number } | null>(null);
 
-  // Web: Pinch-to-zoom via touch events
+  // Web: Pinch-to-zoom via touch events, zoom centered on pinch point
   useEffect(() => {
     if (Platform.OS !== 'web' || !webMapRef.current) return;
     const element = webMapRef.current as unknown as HTMLElement;
@@ -196,12 +199,22 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
     const getDistance = (t1: Touch, t2: Touch) =>
       Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
 
+    const getCenter = (t1: Touch, t2: Touch) => ({
+      x: (t1.clientX + t2.clientX) / 2,
+      y: (t1.clientY + t2.clientY) / 2,
+    });
+
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
+        const center = getCenter(e.touches[0], e.touches[1]);
+        const rect = element.getBoundingClientRect();
         pinchRef.current = {
           initialDistance: getDistance(e.touches[0], e.touches[1]),
           initialZoom: zoomLevel,
+          // Point on map under the pinch center
+          centerX: element.scrollLeft + (center.x - rect.left),
+          centerY: element.scrollTop + (center.y - rect.top),
         };
       }
     };
@@ -212,7 +225,21 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
         const currentDistance = getDistance(e.touches[0], e.touches[1]);
         const scale = currentDistance / pinchRef.current.initialDistance;
         const newZoom = Math.min(5, Math.max(1, pinchRef.current.initialZoom * scale));
+
+        // Adjust scroll so pinch center stays in place
+        const center = getCenter(e.touches[0], e.touches[1]);
+        const rect = element.getBoundingClientRect();
+        const zoomRatio = newZoom / pinchRef.current.initialZoom;
+        const newScrollX = pinchRef.current.centerX * zoomRatio - (center.x - rect.left);
+        const newScrollY = pinchRef.current.centerY * zoomRatio - (center.y - rect.top);
+
         setZoomLevel(newZoom);
+
+        // Apply scroll after React re-render
+        requestAnimationFrame(() => {
+          element.scrollLeft = newScrollX;
+          element.scrollTop = newScrollY;
+        });
       }
     };
 
