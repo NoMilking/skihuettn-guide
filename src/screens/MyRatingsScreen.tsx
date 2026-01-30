@@ -147,34 +147,32 @@ export default function MyRatingsScreen() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.statsBar}
+        onPress={() => navigation.navigate('ActivityFeed')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{ratings.length}</Text>
+          <Text style={styles.statLabel}>Bewertungen</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{stats.commentVotes}</Text>
+          <Text style={styles.statLabel}>💬 Hilfreich</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{stats.photoLikes}</Text>
+          <Text style={styles.statLabel}>Foto-Likes</Text>
+        </View>
+      </TouchableOpacity>
+
       <FlatList
         data={ratings}
         renderItem={renderRating}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        stickyHeaderIndices={[0]}
-        ListHeaderComponent={
-          <TouchableOpacity
-            style={styles.statsBar}
-            onPress={() => navigation.navigate('ActivityFeed')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.statColumn}>
-              <Text style={styles.statValue}>{ratings.length}</Text>
-              <Text style={styles.statLabel}>Bewertungen</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statColumn}>
-              <Text style={styles.statValue}>{stats.commentVotes}</Text>
-              <Text style={styles.statLabel}>💬 Hilfreich</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statColumn}>
-              <Text style={styles.statValue}>{stats.photoLikes}</Text>
-              <Text style={styles.statLabel}>Foto-Likes</Text>
-            </View>
-          </TouchableOpacity>
-        }
       />
     </View>
   );
