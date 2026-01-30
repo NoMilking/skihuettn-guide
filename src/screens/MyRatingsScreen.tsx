@@ -90,32 +90,23 @@ export default function MyRatingsScreen() {
         }}
       >
         <View style={styles.ratingContent}>
-          {/* Restaurant Name */}
           <Text style={styles.restaurantName}>
             {restaurantName}
           </Text>
-
-          {/* Date */}
           <Text style={styles.ratingDate}>
             Bewertet am {formatDate(item.created_at)}
           </Text>
-
-          {/* Updated badge */}
           {item.updated_at !== item.created_at && (
             <Text style={styles.updatedBadge}>
-              ✏️ Bearbeitet am {formatDate(item.updated_at)}
+              Bearbeitet am {formatDate(item.updated_at)}
             </Text>
           )}
-
-          {/* Comment preview (if exists) */}
           {item.comment && (
             <Text style={styles.commentPreview} numberOfLines={2}>
               "{item.comment}"
             </Text>
           )}
         </View>
-
-        {/* Score Display */}
         <View style={[styles.scoreContainer, { backgroundColor: scoreBgColor }]}>
           <Text style={[styles.scoreValue, { color: scoreColor }]}>
             {totalScore.toFixed(1)}
@@ -124,25 +115,6 @@ export default function MyRatingsScreen() {
       </TouchableOpacity>
     );
   };
-
-  const renderStatsHeader = () => (
-    <View style={styles.statsCard}>
-      <View style={styles.statColumn}>
-        <Text style={styles.statValue}>{ratings.length}</Text>
-        <Text style={styles.statLabel}>Bewertungen</Text>
-      </View>
-      <View style={styles.statDivider} />
-      <View style={styles.statColumn}>
-        <Text style={styles.statValue}>{stats.commentVotes}</Text>
-        <Text style={styles.statLabel}>Hilfreich</Text>
-      </View>
-      <View style={styles.statDivider} />
-      <View style={styles.statColumn}>
-        <Text style={styles.statValue}>{stats.photoLikes}</Text>
-        <Text style={styles.statLabel}>Foto-Likes</Text>
-      </View>
-    </View>
-  );
 
   if (loading) {
     return (
@@ -175,12 +147,29 @@ export default function MyRatingsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Fixed stats bar */}
+      <View style={styles.statsBar}>
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{ratings.length}</Text>
+          <Text style={styles.statLabel}>Bewertungen</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{stats.commentVotes}</Text>
+          <Text style={styles.statLabel}>Hilfreich</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{stats.photoLikes}</Text>
+          <Text style={styles.statLabel}>Foto-Likes</Text>
+        </View>
+      </View>
+
       <FlatList
         data={ratings}
         renderItem={renderRating}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        ListHeaderComponent={renderStatsHeader}
       />
     </View>
   );
@@ -219,21 +208,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  listContent: {
-    padding: 16,
-  },
-  statsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+  statsBar: {
+    backgroundColor: '#10B981',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   statColumn: {
     flex: 1,
@@ -242,17 +222,20 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
-    marginTop: 4,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 2,
   },
   statDivider: {
     width: 1,
-    height: 36,
-    backgroundColor: '#E5E7EB',
+    height: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  listContent: {
+    padding: 16,
   },
   ratingItem: {
     backgroundColor: '#FFFFFF',
