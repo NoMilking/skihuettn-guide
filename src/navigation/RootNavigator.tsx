@@ -12,12 +12,14 @@ import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import RatingScreen from '../screens/RatingScreen';
 import ActivityFeedScreen from '../screens/ActivityFeedScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
+import InfoScreen from '../screens/InfoScreen';
 
 // Types for navigation
 export type RootTabParamList = {
   SkiAreas: undefined;
   MySkiAreas: undefined;
   MyRatings: undefined;
+  Info: undefined;
 };
 
 export type RootStackParamList = {
@@ -79,6 +81,16 @@ function MainTabs() {
           title: 'Meine Bewertungen',
           tabBarLabel: 'Bewertungen',
           tabBarIcon: ({ color }) => <TabIcon emoji="📝" />,
+        }}
+      />
+      <Tab.Screen
+        name="Info"
+        component={InfoScreen}
+        options={{
+          title: 'Info',
+          tabBarLabel: () => null,
+          tabBarIcon: ({ color }) => <TabIcon emoji="ℹ️" />,
+          tabBarItemStyle: { maxWidth: 50 },
         }}
       />
     </Tab.Navigator>
