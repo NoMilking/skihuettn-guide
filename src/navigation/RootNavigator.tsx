@@ -10,6 +10,7 @@ import MyRatingsScreen from '../screens/MyRatingsScreen';
 import SkiAreaDetailScreen from '../screens/SkiAreaDetailScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import RatingScreen from '../screens/RatingScreen';
+import ActivityFeedScreen from '../screens/ActivityFeedScreen';
 
 // Types for navigation
 export type RootTabParamList = {
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   SkiAreaDetail: { skiAreaId: string };
   RestaurantDetail: { restaurantId: string };
   Rating: { restaurantId: string };
+  ActivityFeed: undefined;
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -117,6 +119,11 @@ export default function RootNavigator() {
           name="Rating"
           component={RatingScreen}
           options={{ title: 'Bewerten', gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name="ActivityFeed"
+          component={ActivityFeedScreen}
+          options={{ title: 'Aktivität', headerBackTitle: 'Bewertungen' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
