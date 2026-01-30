@@ -116,7 +116,7 @@ export default function RootNavigator() {
         <Stack.Screen
           name="Rating"
           component={RatingScreen}
-          options={{ title: 'Bewerten' }}
+          options={{ title: 'Bewerten', gestureEnabled: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
