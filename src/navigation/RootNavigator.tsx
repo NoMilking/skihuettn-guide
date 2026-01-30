@@ -11,6 +11,7 @@ import SkiAreaDetailScreen from '../screens/SkiAreaDetailScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import RatingScreen from '../screens/RatingScreen';
 import ActivityFeedScreen from '../screens/ActivityFeedScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
 
 // Types for navigation
 export type RootTabParamList = {
@@ -20,6 +21,7 @@ export type RootTabParamList = {
 };
 
 export type RootStackParamList = {
+  Welcome: undefined;
   MainTabs: undefined;
   SkiAreaDetail: { skiAreaId: string };
   RestaurantDetail: { restaurantId: string };
@@ -99,7 +101,12 @@ function TabIcon({ emoji }: { emoji: string }) {
 export default function RootNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName="Welcome">
+        <Stack.Screen
+          name="Welcome"
+          component={WelcomeScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="MainTabs"
           component={MainTabs}
