@@ -301,21 +301,20 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
       </View>
 
       {/* Map with Zoom */}
-      <View style={styles.mapContainer} ref={webMapRef}>
+      <View style={styles.mapContainer}>
         {Platform.OS === 'web' ? (
-          /* Web: ScrollView for pan + transform scale for zoom */
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            horizontal={false}
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
+          /* Web: div with overflow for pan + transform scale for zoom */
+          <View
+            ref={webMapRef}
+            style={{
+              flex: 1,
+              overflow: 'auto' as any,
+            }}
           >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ width: (imageSize.width || screenWidth) * zoomLevel }}
-            >
+            <View style={{
+              width: (imageSize.width || screenWidth) * zoomLevel,
+              height: (imageSize.height || screenWidth * 0.707) * zoomLevel,
+            }}>
               <View style={{
                 width: imageSize.width || screenWidth,
                 height: imageSize.height || screenWidth * 0.707,
@@ -353,8 +352,8 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
                   </View>
                 )}
               </View>
-            </ScrollView>
-          </ScrollView>
+            </View>
+          </View>
         ) : (
           /* Native: ScrollView with built-in zoom */
           <ScrollView
