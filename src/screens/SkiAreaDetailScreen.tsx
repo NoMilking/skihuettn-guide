@@ -81,6 +81,7 @@ export default function SkiAreaDetailScreen({ route }: Props) {
         renderScene={renderScene}
         onIndexChange={setIndex}
         initialLayout={{ width: layout.width }}
+        swipeEnabled={false}
         renderTabBar={props => (
           <TabBar
             {...props}
