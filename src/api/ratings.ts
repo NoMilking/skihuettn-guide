@@ -273,3 +273,28 @@ export async function toggleCommentVote(
     return true;
   }
 }
+
+/**
+ * Gets the total number of "helpful" votes on all comments by a device.
+ */
+export async function getTotalCommentVotes(deviceId: string): Promise<number> {
+  const { data: ratings, error: ratingsError } = await supabase
+    .from('ratings')
+    .select('id')
+    .eq('device_id', deviceId);
+
+  if (ratingsError || !ratings || ratings.length === 0) return 0;
+
+  const ratingIds = ratings.map(r => r.id);
+  const { count, error } = await supabase
+    .from('comment_votes')
+    .select('*', { count: 'exact', head: true })
+    .in('rating_id', ratingIds);
+
+  if (error) {
+    console.error('[API] Error counting total comment votes:', error);
+    return 0;
+  }
+
+  return count ?? 0;
+}

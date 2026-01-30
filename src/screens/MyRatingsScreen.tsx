@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { getRatingsByDeviceWithRestaurants } from '../api/ratings';
+import { getRatingsByDeviceWithRestaurants, getTotalCommentVotes } from '../api/ratings';
+import { getTotalPhotoLikes } from '../api/photos';
 import { useDevice } from '../hooks/useDevice';
 import { calculateTotalScore } from '../logic/scoring';
 import { getScoreColor, getScoreBackgroundColor } from '../logic/color';
@@ -32,6 +33,7 @@ export default function MyRatingsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [ratings, setRatings] = useState<RatingWithRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ commentVotes: 0, photoLikes: 0 });
 
   // Reload ratings when screen comes into focus
   useFocusEffect(
@@ -50,8 +52,13 @@ export default function MyRatingsScreen() {
 
     try {
       setLoading(true);
-      const userRatings = await getRatingsByDeviceWithRestaurants(deviceId);
+      const [userRatings, commentVotes, photoLikes] = await Promise.all([
+        getRatingsByDeviceWithRestaurants(deviceId),
+        getTotalCommentVotes(deviceId),
+        getTotalPhotoLikes(deviceId),
+      ]);
       setRatings(userRatings);
+      setStats({ commentVotes, photoLikes });
     } catch (error) {
       console.error('Error loading ratings:', error);
       Alert.alert('Fehler', 'Bewertungen konnten nicht geladen werden.');
@@ -118,6 +125,25 @@ export default function MyRatingsScreen() {
     );
   };
 
+  const renderStatsHeader = () => (
+    <View style={styles.statsCard}>
+      <View style={styles.statColumn}>
+        <Text style={styles.statValue}>{ratings.length}</Text>
+        <Text style={styles.statLabel}>Bewertungen</Text>
+      </View>
+      <View style={styles.statDivider} />
+      <View style={styles.statColumn}>
+        <Text style={styles.statValue}>{stats.commentVotes}</Text>
+        <Text style={styles.statLabel}>Hilfreich</Text>
+      </View>
+      <View style={styles.statDivider} />
+      <View style={styles.statColumn}>
+        <Text style={styles.statValue}>{stats.photoLikes}</Text>
+        <Text style={styles.statLabel}>Foto-Likes</Text>
+      </View>
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -154,6 +180,7 @@ export default function MyRatingsScreen() {
         renderItem={renderRating}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={renderStatsHeader}
       />
     </View>
   );
@@ -194,6 +221,38 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
+  },
+  statsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  statColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  statDivider: {
+    width: 1,
+    height: 36,
+    backgroundColor: '#E5E7EB',
   },
   ratingItem: {
     backgroundColor: '#FFFFFF',

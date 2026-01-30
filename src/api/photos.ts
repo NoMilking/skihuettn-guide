@@ -424,3 +424,32 @@ export async function getPhotosByRatings(ratingIds: string[]): Promise<Photo[]> 
 
   return photosWithLikes;
 }
+
+/**
+ * Gets the total number of likes on all photos uploaded by a device.
+ */
+export async function getTotalPhotoLikes(deviceId: string): Promise<number> {
+  const { data: ratings, error: ratingsError } = await supabase
+    .from('ratings')
+    .select('id')
+    .eq('device_id', deviceId);
+
+  if (ratingsError || !ratings || ratings.length === 0) return 0;
+
+  const ratingIds = ratings.map(r => r.id);
+  const { data: photos, error: photosError } = await supabase
+    .from('photos')
+    .select('id')
+    .in('rating_id', ratingIds);
+
+  if (photosError || !photos || photos.length === 0) return 0;
+
+  const photoIds = photos.map(p => p.id);
+  const likeCounts = await getPhotoLikeCountsBatch(photoIds);
+
+  let total = 0;
+  for (const count of likeCounts.values()) {
+    total += count;
+  }
+  return total;
+}
