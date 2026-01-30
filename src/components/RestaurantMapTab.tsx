@@ -186,20 +186,49 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
   const [onlyEggnog, setOnlyEggnog] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const webMapRef = useRef<View>(null);
+  const pinchRef = useRef<{ initialDistance: number; initialZoom: number } | null>(null);
 
-  // Web: Zoom via mouse wheel
+  // Web: Pinch-to-zoom via touch events
   useEffect(() => {
     if (Platform.OS !== 'web' || !webMapRef.current) return;
     const element = webMapRef.current as unknown as HTMLElement;
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      setZoomLevel(prev => {
-        const delta = e.deltaY > 0 ? -0.3 : 0.3;
-        return Math.min(10, Math.max(1, prev + delta));
-      });
+
+    const getDistance = (t1: Touch, t2: Touch) =>
+      Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        pinchRef.current = {
+          initialDistance: getDistance(e.touches[0], e.touches[1]),
+          initialZoom: zoomLevel,
+        };
+      }
     };
-    element.addEventListener('wheel', handleWheel, { passive: false });
-    return () => element.removeEventListener('wheel', handleWheel);
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchRef.current) {
+        e.preventDefault();
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const scale = currentDistance / pinchRef.current.initialDistance;
+        const newZoom = Math.min(5, Math.max(1, pinchRef.current.initialZoom * scale));
+        setZoomLevel(newZoom);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      pinchRef.current = null;
+    };
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: false });
+    element.addEventListener('touchmove', handleTouchMove, { passive: false });
+    element.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+      element.removeEventListener('touchend', handleTouchEnd);
+    };
   });
 
   const mapUrl = skiArea?.map_image
@@ -309,7 +338,8 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
             style={{
               flex: 1,
               overflow: 'auto' as any,
-            }}
+              touchAction: 'none',
+            } as any}
           >
             <View style={{
               width: (imageSize.width || screenWidth) * zoomLevel,
