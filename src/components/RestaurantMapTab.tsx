@@ -43,9 +43,11 @@ const MapPin = memo(function MapPin({ restaurant, onPress, x, y, rank, isGrayedO
     : getScoreColor(restaurant.avg_total_score, restaurant.rating_count);
 
   // On native: ScrollView scales everything, so apply inverse sqrt to shrink pins
-  // On web: map is physically resized, pins are already relatively smaller - no extra scaling
+  // On web: map is physically resized, pins shrink with zoom. Compensate partially
+  // so pins at max zoom (5x) are 50% larger than without compensation.
+  // Formula: at zoom=1 → scale=1, at zoom=5 → scale=1.5
   const inverseScale = Platform.OS === 'web'
-    ? 1
+    ? 1 + (zoomLevel - 1) * 0.125
     : 1 / Math.sqrt(zoomLevel);
 
   return (
