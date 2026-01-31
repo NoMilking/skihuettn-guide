@@ -214,7 +214,7 @@ export default function RestaurantDetailScreen({ route }: Props) {
 
             {/* Schirmbar Status */}
             <View style={styles.eggnog}>
-              <Text style={styles.eggnogLabel}>🍹 Schirmbar:</Text>
+              <Text style={styles.eggnogLabel}>🎪 Schirmbar:</Text>
               <Text style={styles.eggnogValue}>
                 {restaurant.schirmbar_percentage >= 0.5 ? 'Ja' : 'Nein'} ({Math.round(restaurant.schirmbar_percentage * 100)}%)
               </Text>

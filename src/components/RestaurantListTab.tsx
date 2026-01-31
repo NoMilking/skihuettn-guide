@@ -77,7 +77,7 @@ export default function RestaurantListTab({ restaurants }: Props) {
           )}
           {item.rating_count > 0 && (
             <Text style={styles.eggnogInfo}>
-              🍹 {hasSchirmbar ? 'Schirmbar' : 'Keine Schirmbar'}
+              🎪 {hasSchirmbar ? 'Schirmbar' : 'Keine Schirmbar'}
             </Text>
           )}
           <Text style={styles.ratingCount}>
@@ -146,35 +146,11 @@ export default function RestaurantListTab({ restaurants }: Props) {
             </ScrollView>
           </View>
 
-          {/* Checkboxen */}
-          <View style={styles.checkboxRowContainer}>
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setOnlyService(!onlyService)}
-            >
-              <View style={[styles.checkbox, onlyService && styles.checkboxChecked]}>
-                {onlyService && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkboxLabel}>Mit Bedienung</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setOnlyEggnog(!onlyEggnog)}
-            >
-              <View style={[styles.checkbox, onlyEggnog && styles.checkboxChecked]}>
-                {onlyEggnog && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkboxLabel}>🥚🥛 Eierlikör</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setOnlySchirmbar(!onlySchirmbar)}
-            >
-              <View style={[styles.checkbox, onlySchirmbar && styles.checkboxChecked]}>
-                {onlySchirmbar && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkboxLabel}>🍹 Schirmbar</Text>
-            </TouchableOpacity>
+          {/* Filter-Chips */}
+          <View style={styles.chipGroup}>
+            <SortChip label="🛎️ Bedienung" active={onlyService} onPress={() => setOnlyService(!onlyService)} />
+            <SortChip label="🥚🥛 Eierlikör" active={onlyEggnog} onPress={() => setOnlyEggnog(!onlyEggnog)} />
+            <SortChip label="🎪 Schirmbar" active={onlySchirmbar} onPress={() => setOnlySchirmbar(!onlySchirmbar)} />
           </View>
         </View>
 
@@ -317,39 +293,6 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: '#FFFFFF',
-  },
-  checkboxRowContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 16,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  checkboxLabel: {
-    fontSize: 15,
-    color: '#374151',
   },
   scoreSlider: {
     width: '100%',

@@ -149,6 +149,7 @@ function MapPopup({ restaurant, onClose, onNavigate, highlightKey }: MapPopupPro
     ? getSelfServiceLabel(restaurant.most_common_self_service)
     : 'Keine Bewertungen';
   const hasEggnog = restaurant.eggnog_percentage >= 0.5;
+  const hasSchirmbar = restaurant.schirmbar_percentage >= 0.5;
 
   return (
     <View style={styles.popupOverlay}>
@@ -161,6 +162,11 @@ function MapPopup({ restaurant, onClose, onNavigate, highlightKey }: MapPopupPro
             {restaurant.rating_count > 0 && (
               <Text style={styles.popupEggnog}>
                 🥚🥛 {hasEggnog ? 'Eierlikör' : 'Kein Eierlikör'}
+              </Text>
+            )}
+            {restaurant.rating_count > 0 && (
+              <Text style={styles.popupEggnog}>
+                🎪 {hasSchirmbar ? 'Schirmbar' : 'Keine Schirmbar'}
               </Text>
             )}
             <Text style={styles.popupRatings}>
@@ -189,6 +195,7 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
   const [sortBy, setSortBy] = useState<SortKey>('avg_total_score');
   const [onlyService, setOnlyService] = useState(false);
   const [onlyEggnog, setOnlyEggnog] = useState(false);
+  const [onlySchirmbar, setOnlySchirmbar] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const webMapRef = useRef<View>(null);
   const pinchRef = useRef<{ initialDistance: number; initialZoom: number; centerX: number; centerY: number } | null>(null);
@@ -269,20 +276,22 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
       if (r.rating_count === 0) return false;
       if (onlyService && r.most_common_self_service !== 0) return false;
       if (onlyEggnog && r.eggnog_percentage < 0.5) return false;
+      if (onlySchirmbar && r.schirmbar_percentage < 0.5) return false;
       return true;
     });
     const sorted = [...filtered].sort((a, b) => (b[sortBy] as number) - (a[sortBy] as number));
     const map = new Map<string, number>();
     sorted.forEach((r, i) => map.set(r.restaurant_id, i + 1));
     return map;
-  }, [restaurants, sortBy, onlyService, onlyEggnog]);
+  }, [restaurants, sortBy, onlyService, onlyEggnog, onlySchirmbar]);
 
   const isGrayedOut = useCallback((r: RestaurantStats) => {
     if (r.rating_count === 0) return true;
     if (onlyService && r.most_common_self_service !== 0) return true;
     if (onlyEggnog && r.eggnog_percentage < 0.5) return true;
+    if (onlySchirmbar && r.schirmbar_percentage < 0.5) return true;
     return false;
-  }, [onlyService, onlyEggnog]);
+  }, [onlyService, onlyEggnog, onlySchirmbar]);
 
   const handlePinPress = useCallback((restaurant: RestaurantStats) => {
     setSelectedRestaurant(restaurant);
@@ -342,19 +351,10 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
           </ScrollView>
         </View>
 
-        <View style={styles.checkboxRowContainer}>
-          <TouchableOpacity style={styles.checkboxRow} onPress={() => setOnlyService(!onlyService)}>
-            <View style={[styles.checkbox, onlyService && styles.checkboxChecked]}>
-              {onlyService && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>Mit Bedienung</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.checkboxRow} onPress={() => setOnlyEggnog(!onlyEggnog)}>
-            <View style={[styles.checkbox, onlyEggnog && styles.checkboxChecked]}>
-              {onlyEggnog && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>🥚🥛 Eierlikör</Text>
-          </TouchableOpacity>
+        <View style={styles.chipGroup}>
+          <SortChip label="🛎️ Bedienung" active={onlyService} onPress={() => setOnlyService(!onlyService)} />
+          <SortChip label="🥚🥛 Eierlikör" active={onlyEggnog} onPress={() => setOnlyEggnog(!onlyEggnog)} />
+          <SortChip label="🎪 Schirmbar" active={onlySchirmbar} onPress={() => setOnlySchirmbar(!onlySchirmbar)} />
         </View>
       </View>
 
@@ -546,37 +546,6 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: '#FFFFFF',
-  },
-  checkboxRowContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  checkboxLabel: {
-    fontSize: 15,
-    color: '#374151',
   },
   pin: {
     position: 'absolute',

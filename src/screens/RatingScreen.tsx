@@ -397,7 +397,7 @@ export default function RatingScreen({ route }: Props) {
         {/* Schirmbar Toggle (no points) */}
         <View style={styles.section}>
           <View style={styles.eggnogRow}>
-            <Text style={styles.eggnogLabel}>🍹 Schirmbar vorhanden?</Text>
+            <Text style={styles.eggnogLabel}>🎪 Schirmbar vorhanden?</Text>
             <View style={styles.eggnogToggle}>
               <Text style={styles.eggnogValue}>{schirmbar ? 'Ja' : 'Nein'}</Text>
               <Switch
