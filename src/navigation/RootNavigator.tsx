@@ -63,6 +63,7 @@ function MainTabs() {
           title: 'Skigebiete',
           tabBarLabel: 'Skigebiete',
           tabBarIcon: ({ color }) => <TabIcon emoji="⛷️" />,
+          tabBarItemStyle: { borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.08)' },
         }}
       />
       <Tab.Screen
@@ -72,6 +73,7 @@ function MainTabs() {
           title: 'Meine Skigebiete',
           tabBarLabel: 'Favoriten',
           tabBarIcon: ({ color }) => <TabIcon emoji="⭐" />,
+          tabBarItemStyle: { borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.08)' },
         }}
       />
       <Tab.Screen
@@ -81,6 +83,7 @@ function MainTabs() {
           title: 'Meine Bewertungen',
           tabBarLabel: 'Bewertungen',
           tabBarIcon: ({ color }) => <TabIcon emoji="📝" />,
+          tabBarItemStyle: { borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.08)' },
         }}
       />
       <Tab.Screen
