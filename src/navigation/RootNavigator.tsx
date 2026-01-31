@@ -91,7 +91,7 @@ function MainTabs() {
         component={InfoScreen}
         options={{
           title: 'Info',
-          tabBarLabel: () => null,
+          tabBarLabel: 'Info',
           tabBarIcon: ({ color }) => <TabIcon emoji="ℹ️" />,
           tabBarItemStyle: { maxWidth: 50 },
         }}
