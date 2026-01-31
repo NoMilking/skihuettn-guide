@@ -46,9 +46,9 @@ function MainTabs() {
         tabBarActiveTintColor: '#10B981', // green-500
         tabBarInactiveTintColor: '#9CA3AF', // gray-400
         tabBarStyle: {
-          paddingBottom: 5,
+          paddingBottom: 12,
           paddingTop: 5,
-          height: 60,
+          height: 68,
         },
         tabBarLabelStyle: {
           fontSize: 12,
