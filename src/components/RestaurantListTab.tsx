@@ -146,12 +146,29 @@ export default function RestaurantListTab({ restaurants }: Props) {
             </ScrollView>
           </View>
 
-          {/* Filter-Chips */}
-          <View style={styles.chipGroup}>
-            <SortChip label="🛎️ Bedienung" active={onlyService} onPress={() => setOnlyService(!onlyService)} />
-            <SortChip label="🥚🥛 Eierlikör" active={onlyEggnog} onPress={() => setOnlyEggnog(!onlyEggnog)} />
-            <SortChip label="🎪 Schirmbar" active={onlySchirmbar} onPress={() => setOnlySchirmbar(!onlySchirmbar)} />
-          </View>
+          {/* Filter-Checkboxen */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.checkboxRow}>
+              <TouchableOpacity style={styles.checkboxItem} onPress={() => setOnlyService(!onlyService)}>
+                <View style={[styles.checkbox, onlyService && styles.checkboxChecked]}>
+                  {onlyService && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.checkboxLabel}>Mit Bedienung</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.checkboxItem} onPress={() => setOnlyEggnog(!onlyEggnog)}>
+                <View style={[styles.checkbox, onlyEggnog && styles.checkboxChecked]}>
+                  {onlyEggnog && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.checkboxLabel}>🥚🥛 Eierlikör</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.checkboxItem} onPress={() => setOnlySchirmbar(!onlySchirmbar)}>
+                <View style={[styles.checkbox, onlySchirmbar && styles.checkboxChecked]}>
+                  {onlySchirmbar && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.checkboxLabel}>🎪 Schirmbar</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
 
       {/* Content: List or Empty State */}
@@ -293,6 +310,37 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: '#FFFFFF',
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  checkboxItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  checkmark: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: '#374151',
   },
   scoreSlider: {
     width: '100%',
