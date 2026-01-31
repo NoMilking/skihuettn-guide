@@ -25,6 +25,7 @@ export default function RestaurantListTab({ restaurants }: Props) {
   const [sortBy, setSortBy] = useState<keyof RestaurantStats>('avg_total_score');
   const [onlyService, setOnlyService] = useState(false);
   const [onlyEggnog, setOnlyEggnog] = useState(false);
+  const [onlySchirmbar, setOnlySchirmbar] = useState(false);
 
   // Filter and sort restaurants (memoized)
   const filteredRestaurants = useMemo(() => {
@@ -32,6 +33,7 @@ export default function RestaurantListTab({ restaurants }: Props) {
       .filter(r => {
         if (onlyService && r.most_common_self_service !== 0) return false;
         if (onlyEggnog && r.eggnog_percentage < 0.5) return false;
+        if (onlySchirmbar && r.schirmbar_percentage < 0.5) return false;
         return true;
       })
       .sort((a, b) => {
@@ -44,7 +46,7 @@ export default function RestaurantListTab({ restaurants }: Props) {
         const bValue = b[sortBy] as number;
         return bValue - aValue; // Descending
       });
-  }, [restaurants, onlyService, onlyEggnog, sortBy]);
+  }, [restaurants, onlyService, onlyEggnog, onlySchirmbar, sortBy]);
 
   const handleNavigate = useCallback((restaurantId: string) => {
     navigation.navigate('RestaurantDetail', { restaurantId });
@@ -57,6 +59,7 @@ export default function RestaurantListTab({ restaurants }: Props) {
       ? getSelfServiceLabel(item.most_common_self_service)
       : 'Keine Bewertungen';
     const hasEggnog = item.eggnog_percentage >= 0.5;
+    const hasSchirmbar = item.schirmbar_percentage >= 0.5;
 
     return (
       <TouchableOpacity
@@ -70,6 +73,11 @@ export default function RestaurantListTab({ restaurants }: Props) {
           {item.rating_count > 0 && (
             <Text style={styles.eggnogInfo}>
               🥚🥛 {hasEggnog ? 'Eierlikör' : 'Kein Eierlikör'}
+            </Text>
+          )}
+          {item.rating_count > 0 && (
+            <Text style={styles.eggnogInfo}>
+              🍹 {hasSchirmbar ? 'Schirmbar' : 'Keine Schirmbar'}
             </Text>
           )}
           <Text style={styles.ratingCount}>
@@ -157,6 +165,15 @@ export default function RestaurantListTab({ restaurants }: Props) {
                 {onlyEggnog && <Text style={styles.checkmark}>✓</Text>}
               </View>
               <Text style={styles.checkboxLabel}>🥚🥛 Eierlikör</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setOnlySchirmbar(!onlySchirmbar)}
+            >
+              <View style={[styles.checkbox, onlySchirmbar && styles.checkboxChecked]}>
+                {onlySchirmbar && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <Text style={styles.checkboxLabel}>🍹 Schirmbar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -303,7 +320,8 @@ const styles = StyleSheet.create({
   },
   checkboxRowContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 16,
     marginBottom: 16,
   },
   checkboxRow: {

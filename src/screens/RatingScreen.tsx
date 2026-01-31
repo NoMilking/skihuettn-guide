@@ -64,6 +64,7 @@ export default function RatingScreen({ route }: Props) {
   const [interior, setInterior] = useState<number>(0);
   const [apresSki, setApresSki] = useState<number>(0);
   const [eggnog, setEggnog] = useState<boolean>(false);
+  const [schirmbar, setSchirmbar] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
   const [photos, setPhotos] = useState<Array<{ uri: string; photoId?: string }>>([]);
 
@@ -114,6 +115,7 @@ export default function RatingScreen({ route }: Props) {
         setInterior(existingRating.interior);
         setApresSki(existingRating.apres_ski);
         setEggnog(existingRating.eggnog);
+        setSchirmbar(existingRating.schirmbar);
         setComment(existingRating.comment || '');
 
         // Load existing photos
@@ -197,6 +199,7 @@ export default function RatingScreen({ route }: Props) {
         interior,
         apres_ski: apresSki,
         eggnog,
+        schirmbar,
         comment: comment.trim() || undefined,
       };
 
@@ -212,6 +215,7 @@ export default function RatingScreen({ route }: Props) {
           interior,
           apres_ski: apresSki,
           eggnog,
+          schirmbar,
           comment: comment.trim() || undefined,
         };
         await updateRating(restaurantId, deviceId, updateData);
@@ -383,6 +387,22 @@ export default function RatingScreen({ route }: Props) {
               <Switch
                 value={eggnog}
                 onValueChange={setEggnog}
+                trackColor={{ false: '#D1D5DB', true: '#10B981' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Schirmbar Toggle (no points) */}
+        <View style={styles.section}>
+          <View style={styles.eggnogRow}>
+            <Text style={styles.eggnogLabel}>🍹 Schirmbar vorhanden?</Text>
+            <View style={styles.eggnogToggle}>
+              <Text style={styles.eggnogValue}>{schirmbar ? 'Ja' : 'Nein'}</Text>
+              <Switch
+                value={schirmbar}
+                onValueChange={setSchirmbar}
                 trackColor={{ false: '#D1D5DB', true: '#10B981' }}
                 thumbColor="#FFFFFF"
               />

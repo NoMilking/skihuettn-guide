@@ -34,6 +34,9 @@ export interface Rating {
   // Bonus
   eggnog: boolean;
 
+  // Informational (no points)
+  schirmbar: boolean;
+
   // Additional
   comment?: string;
 
@@ -55,6 +58,7 @@ export interface RestaurantStats {
   avg_interior: number;
   avg_apres_ski: number;
   eggnog_percentage: number;
+  schirmbar_percentage: number;
   avg_total_score: number;
   most_common_self_service: -20 | -10 | 0 | null;
 }
