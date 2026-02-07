@@ -423,8 +423,8 @@ export default function RatingScreen({ route }: Props) {
             multiline
             numberOfLines={4}
             maxLength={500}
-            returnKeyType="done"
-            blurOnSubmit={true}
+            returnKeyType="default"
+            blurOnSubmit={false}
             onFocus={() => {
               setTimeout(() => {
                 scrollViewRef.current?.scrollToEnd({ animated: true });
