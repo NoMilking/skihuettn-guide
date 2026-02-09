@@ -452,6 +452,8 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
                 source={{ uri: mapUrl }}
                 style={{ width: imageSize.width || screenWidth, height: imageSize.height || screenWidth * 0.707 }}
                 contentFit="contain"
+                allowDownscaling={false}
+                useAppleWebpCodec={false}
                 onLoad={(e) => {
                   const { width, height } = e.source;
                   const aspectRatio = height / width;
