@@ -275,6 +275,52 @@ export async function toggleCommentVote(
 }
 
 /**
+ * Gets vote counts for multiple comments in one query (batch).
+ * Replaces N+1 pattern of calling getCommentVoteCount per comment.
+ */
+export async function getCommentVoteCountsBatch(ratingIds: string[]): Promise<Map<string, number>> {
+  if (ratingIds.length === 0) return new Map();
+
+  const { data, error } = await supabase
+    .from('comment_votes')
+    .select('rating_id')
+    .in('rating_id', ratingIds);
+
+  if (error) {
+    console.error('[API] Error getting vote counts batch:', error);
+    return new Map();
+  }
+
+  const counts = new Map<string, number>();
+  for (const vote of data) {
+    counts.set(vote.rating_id, (counts.get(vote.rating_id) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+/**
+ * Gets which comments a user has voted on (batch).
+ * Replaces N+1 pattern of calling hasUserVoted per comment.
+ */
+export async function getUserVotedCommentsBatch(ratingIds: string[], deviceId: string): Promise<Set<string>> {
+  if (ratingIds.length === 0 || !deviceId) return new Set();
+
+  const { data, error } = await supabase
+    .from('comment_votes')
+    .select('rating_id')
+    .in('rating_id', ratingIds)
+    .eq('device_id', deviceId);
+
+  if (error) {
+    console.error('[API] Error getting user voted comments batch:', error);
+    return new Set();
+  }
+
+  return new Set(data.map(v => v.rating_id));
+}
+
+/**
  * Gets the total number of "helpful" votes on all comments by a device.
  */
 export async function getTotalCommentVotes(deviceId: string): Promise<number> {

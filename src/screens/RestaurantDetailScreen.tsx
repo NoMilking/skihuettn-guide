@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RestaurantStats, Rating, Photo } from '../types';
 import { getRestaurantStats } from '../api/restaurants';
 import { getRatingsByRestaurant, getUserRatingForRestaurant } from '../api/ratings';
-import { getCommentVoteCount, hasUserVoted, toggleCommentVote } from '../api/ratings';
+import { getCommentVoteCountsBatch, getUserVotedCommentsBatch, toggleCommentVote } from '../api/ratings';
 import { getPhotosByRatings, getPhotoUrl, togglePhotoLike, hasUserLikedPhoto } from '../api/photos';
 import { useDevice } from '../hooks/useDevice';
 import { getScoreColor, getScoreBackgroundColor } from '../logic/color';
@@ -50,6 +50,9 @@ export default function RestaurantDetailScreen({ route }: Props) {
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
   const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set());
   const [likingInProgress, setLikingInProgress] = useState(false);
+  const [commentVoteCounts, setCommentVoteCounts] = useState<Map<string, number>>(new Map());
+  const [userVotedComments, setUserVotedComments] = useState<Set<string>>(new Set());
+  const [showAllComments, setShowAllComments] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Reload data when screen comes into focus (e.g., after returning from rating screen)
@@ -74,6 +77,17 @@ export default function RestaurantDetailScreen({ route }: Props) {
       if (deviceId) {
         const userRatingData = await getUserRatingForRestaurant(restaurantId, deviceId);
         setUserRating(userRatingData);
+      }
+
+      // Load comment vote data (batch)
+      const commentRatingIds = ratingsData.filter(r => r.comment).map(r => r.id);
+      if (commentRatingIds.length > 0) {
+        const [voteCounts, votedSet] = await Promise.all([
+          getCommentVoteCountsBatch(commentRatingIds),
+          deviceId ? getUserVotedCommentsBatch(commentRatingIds, deviceId) : Promise.resolve(new Set<string>()),
+        ]);
+        setCommentVoteCounts(voteCounts);
+        setUserVotedComments(votedSet);
       }
 
       // Load all photos for all ratings (sorted by likes)
@@ -235,16 +249,42 @@ export default function RestaurantDetailScreen({ route }: Props) {
         </TouchableOpacity>
 
         {/* Comments Section */}
-        {allRatings.filter(r => r.comment).length > 0 && (
-          <View style={styles.commentsCard}>
-            <Text style={styles.sectionTitle}>Kommentare</Text>
-            {allRatings
-              .filter(r => r.comment)
-              .map(rating => (
-                <CommentItem key={rating.id} rating={rating} deviceId={deviceId} />
+        {(() => {
+          const commentsWithVotes = allRatings
+            .filter(r => r.comment)
+            .sort((a, b) => {
+              const voteDiff = (commentVoteCounts.get(b.id) ?? 0) - (commentVoteCounts.get(a.id) ?? 0);
+              if (voteDiff !== 0) return voteDiff;
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
+          const visibleComments = showAllComments ? commentsWithVotes : commentsWithVotes.slice(0, 3);
+          const hiddenCount = commentsWithVotes.length - 3;
+
+          return commentsWithVotes.length > 0 ? (
+            <View style={styles.commentsCard}>
+              <Text style={styles.sectionTitle}>Kommentare ({commentsWithVotes.length})</Text>
+              {visibleComments.map(rating => (
+                <CommentItem
+                  key={rating.id}
+                  rating={rating}
+                  deviceId={deviceId}
+                  initialVoteCount={commentVoteCounts.get(rating.id) ?? 0}
+                  initialHasVoted={userVotedComments.has(rating.id)}
+                />
               ))}
-          </View>
-        )}
+              {!showAllComments && hiddenCount > 0 && (
+                <TouchableOpacity
+                  style={styles.showAllCommentsButton}
+                  onPress={() => setShowAllComments(true)}
+                >
+                  <Text style={styles.showAllCommentsButtonText}>
+                    Alle {commentsWithVotes.length} Kommentare anzeigen
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : null;
+        })()}
 
         {/* Photos Section */}
         {photos.length > 0 && (
@@ -435,30 +475,14 @@ function CategoryRow({ label, value }: CategoryRowProps) {
 interface CommentItemProps {
   rating: Rating;
   deviceId: string | null;
+  initialVoteCount: number;
+  initialHasVoted: boolean;
 }
 
-function CommentItem({ rating, deviceId }: CommentItemProps) {
-  const [voteCount, setVoteCount] = useState(0);
-  const [hasVoted, setHasVoted] = useState(false);
+function CommentItem({ rating, deviceId, initialVoteCount, initialHasVoted }: CommentItemProps) {
+  const [voteCount, setVoteCount] = useState(initialVoteCount);
+  const [hasVoted, setHasVoted] = useState(initialHasVoted);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    loadVoteData();
-  }, [rating.id, deviceId]);
-
-  const loadVoteData = async () => {
-    try {
-      const count = await getCommentVoteCount(rating.id);
-      setVoteCount(count);
-
-      if (deviceId) {
-        const voted = await hasUserVoted(rating.id, deviceId);
-        setHasVoted(voted);
-      }
-    } catch (error) {
-      console.error('Error loading vote data:', error);
-    }
-  };
 
   const handleVote = async () => {
     if (!deviceId) {
@@ -770,6 +794,19 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: '#F3F4F6',
+  },
+  showAllCommentsButton: {
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  showAllCommentsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10B981',
   },
   showAllButton: {
     marginTop: 12,
