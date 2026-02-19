@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
@@ -38,28 +38,6 @@ export default function WelcomeScreen() {
         resizeMode="cover"
       />
 
-      {/* Soft white edges */}
-      <LinearGradient
-        colors={['#FFFFFF', 'transparent']}
-        style={styles.edgeTop}
-      />
-      <LinearGradient
-        colors={['transparent', '#FFFFFF']}
-        style={styles.edgeBottom}
-      />
-      <LinearGradient
-        colors={['#FFFFFF', 'transparent']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.edgeLeft}
-      />
-      <LinearGradient
-        colors={['transparent', '#FFFFFF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.edgeRight}
-      />
-
       <Animated.View style={[styles.buttonContainer, { opacity: fadeAnim }]}>
         <TouchableOpacity
           style={styles.button}
@@ -84,37 +62,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  edgeTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 80,
-  },
-  edgeBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 80,
-  },
-  edgeLeft: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: 20,
-  },
-  edgeRight: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    right: 0,
-    width: 20,
-  },
   buttonContainer: {
     position: 'absolute',
-    bottom: '20%',
+    bottom: '33%',
     left: 0,
     right: 0,
     alignItems: 'center',
