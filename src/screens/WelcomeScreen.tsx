@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Platform,
 } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
@@ -33,7 +34,10 @@ export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../assets/welcome.png')}
+        source={Platform.OS === 'web'
+          ? require('../../assets/welcome-web.png')
+          : require('../../assets/welcome.png')
+        }
         style={styles.backgroundImage}
         resizeMode="cover"
       />
