@@ -42,13 +42,8 @@ const MapPin = memo(function MapPin({ restaurant, onPress, x, y, rank, isGrayedO
     ? '#6B7280'
     : getScoreColor(restaurant.avg_total_score, restaurant.rating_count);
 
-  // On native: ScrollView scales everything, so apply inverse sqrt to shrink pins
-  // On web: map is physically resized, pins shrink with zoom. Compensate partially
-  // so pins at max zoom (5x) are 50% larger than without compensation.
-  // Formula: at zoom=1 → scale=1, at zoom=5 → scale=1.5
-  const inverseScale = Platform.OS === 'web'
-    ? 1 + (zoomLevel - 1) * 0.125
-    : 1 / Math.sqrt(zoomLevel);
+  // Both platforms: inverse sqrt so pins shrink proportionally as zoom increases
+  const inverseScale = 1 / Math.sqrt(zoomLevel);
 
   return (
     <TouchableOpacity
@@ -233,7 +228,7 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
         e.preventDefault();
         const currentDistance = getDistance(e.touches[0], e.touches[1]);
         const scale = currentDistance / pinchRef.current.initialDistance;
-        const newZoom = Math.min(5, Math.max(1, pinchRef.current.initialZoom * scale));
+        const newZoom = Math.min(10, Math.max(1, pinchRef.current.initialZoom * scale));
 
         // Adjust scroll so pinch center stays in place
         const center = getCenter(e.touches[0], e.touches[1]);
