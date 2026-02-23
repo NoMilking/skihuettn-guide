@@ -226,7 +226,7 @@ const CategoryBars = memo(function CategoryBars({ stats, highlightKey }: { stats
       {categories.map((cat) => {
         const isHighlighted = cat.key === highlightKey;
         return (
-          <View key={cat.key} style={styles.categoryBarRow}>
+          <View key={cat.key} style={[styles.categoryBarRow, isHighlighted && styles.categoryBarRowHighlighted]}>
             <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
             <View style={[styles.barContainer, isHighlighted && styles.barContainerHighlighted]}>
               <View style={[
@@ -426,6 +426,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 2,
+  },
+  categoryBarRowHighlighted: {
+    backgroundColor: '#D1FAE5',
+    borderRadius: 4,
+    marginHorizontal: -4,
+    paddingHorizontal: 4,
   },
   categoryEmoji: {
     fontSize: 10,
