@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
+import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,11 @@ export default function RestaurantListTab({ restaurants }: Props) {
   const [onlyService, setOnlyService] = useState(false);
   const [onlyEggnog, setOnlyEggnog] = useState(false);
   const [onlySchirmbar, setOnlySchirmbar] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [sortBy]);
 
   // Filter and sort restaurants (memoized)
   const filteredRestaurants = useMemo(() => {
@@ -180,6 +185,7 @@ export default function RestaurantListTab({ restaurants }: Props) {
         </View>
       ) : (
         <FlatList
+          ref={flatListRef}
           data={filteredRestaurants}
           renderItem={renderRestaurant}
           keyExtractor={item => item.restaurant_id}
