@@ -42,8 +42,11 @@ const MapPin = memo(function MapPin({ restaurant, onPress, x, y, rank, isGrayedO
     ? '#6B7280'
     : getScoreColor(restaurant.avg_total_score, restaurant.rating_count);
 
-  // Both platforms: inverse sqrt so pins shrink proportionally as zoom increases
-  const inverseScale = 1 / Math.sqrt(zoomLevel);
+  // Native: ScrollView zooms everything, so inverse sqrt counteracts it (pins stay readable)
+  // Web: only the map image grows, pins are separate elements - keep them visible with capped growth
+  const inverseScale = Platform.OS === 'web'
+    ? Math.min(1.5, 1 + (zoomLevel - 1) * 0.125)
+    : 1 / Math.sqrt(zoomLevel);
 
   return (
     <TouchableOpacity
