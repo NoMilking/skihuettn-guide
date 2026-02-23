@@ -45,7 +45,7 @@ const MapPin = memo(function MapPin({ restaurant, onPress, x, y, rank, isGrayedO
   // Native: ScrollView zooms everything, so inverse sqrt counteracts it (pins stay readable)
   // Web: only the map image grows, pins are separate elements - keep them visible with capped growth
   const inverseScale = Platform.OS === 'web'
-    ? Math.min(1.5, 1 + (zoomLevel - 1) * 0.125)
+    ? Math.min(1.725, 1 + (zoomLevel - 1) * 0.144)
     : 1 / Math.sqrt(zoomLevel);
 
   return (
