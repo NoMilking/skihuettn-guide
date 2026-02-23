@@ -730,17 +730,17 @@ const styles = StyleSheet.create({
   categoryBarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   categoryEmoji: {
-    fontSize: 10,
+    fontSize: 11,
     width: 16,
   },
   barContainer: {
     flex: 1,
-    height: 6,
+    height: 8,
     backgroundColor: '#E5E7EB',
-    borderRadius: 3,
+    borderRadius: 4,
     marginHorizontal: 4,
   },
   barFill: {
@@ -749,13 +749,13 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   categoryValue: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#6B7280',
     width: 20,
     textAlign: 'right',
   },
   barContainerHighlighted: {
-    height: 8,
+    height: 10,
   },
   barFillHighlighted: {
     backgroundColor: '#059669',
