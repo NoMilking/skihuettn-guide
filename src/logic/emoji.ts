@@ -15,8 +15,7 @@ export interface EmojiConfig {
  * 2. Essen
  * 3. Service
  * 4. Sonnenterrasse
- * 5. Ski Haserl
- * 6. Einrichtung (lowest priority)
+ * 5. Einrichtung (lowest priority)
  *
  * An emoji is only shown when the category average is > 4.5
  */
@@ -25,8 +24,7 @@ const EMOJI_CONFIGS: EmojiConfig[] = [
   { category: 'avg_food', emoji: '🍽️', threshold: 4.5, priority: 2 },
   { category: 'avg_service', emoji: '🧑‍🍳', threshold: 4.5, priority: 3 },
   { category: 'avg_sun_terrace', emoji: '☀️', threshold: 4.5, priority: 4 },
-  { category: 'avg_ski_haserl', emoji: '💃', threshold: 4.5, priority: 5 },
-  { category: 'avg_interior', emoji: '🛋️', threshold: 4.5, priority: 6 },
+  { category: 'avg_interior', emoji: '🛋️', threshold: 4.5, priority: 5 },
 ];
 
 /**

@@ -212,7 +212,6 @@ export default function RestaurantDetailScreen({ route }: Props) {
             <Text style={styles.sectionTitle}>Kategorien</Text>
 
             <CategoryRow label="Service" value={restaurant.avg_service} />
-            <CategoryRow label="Ski Haserl Alarm" value={restaurant.avg_ski_haserl} />
             <CategoryRow label="Essen" value={restaurant.avg_food} />
             <CategoryRow label="Sonnenterrasse" value={restaurant.avg_sun_terrace} />
             <CategoryRow label="Einrichtung & Toiletten" value={restaurant.avg_interior} />

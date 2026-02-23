@@ -20,7 +20,7 @@ import { supabase } from '../api/supabase';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-type SortKey = 'avg_total_score' | 'avg_service' | 'avg_ski_haserl' | 'avg_food' | 'avg_sun_terrace' | 'avg_interior' | 'avg_apres_ski';
+type SortKey = 'avg_total_score' | 'avg_service' | 'avg_food' | 'avg_sun_terrace' | 'avg_interior' | 'avg_apres_ski';
 
 interface Props {
   restaurants: RestaurantStats[];
@@ -106,7 +106,6 @@ const CategoryBars = memo(function CategoryBars({ stats, highlightKey }: { stats
 
   const categories = [
     { key: 'avg_service', emoji: '🛎️', value: stats.avg_service },
-    { key: 'avg_ski_haserl', emoji: '💃', value: stats.avg_ski_haserl },
     { key: 'avg_food', emoji: '🍽️', value: stats.avg_food },
     { key: 'avg_sun_terrace', emoji: '☀️', value: stats.avg_sun_terrace },
     { key: 'avg_interior', emoji: '🛖', value: stats.avg_interior },
@@ -340,7 +339,6 @@ export default function RestaurantMapTab({ restaurants, skiArea }: Props) {
             <View style={styles.chipGroup}>
               <SortChip label="Gesamtscore" active={sortBy === 'avg_total_score'} onPress={() => setSortBy('avg_total_score')} />
               <SortChip label="🛎️ Service" active={sortBy === 'avg_service'} onPress={() => setSortBy('avg_service')} />
-              <SortChip label="💃 Ski-Haserl" active={sortBy === 'avg_ski_haserl'} onPress={() => setSortBy('avg_ski_haserl')} />
               <SortChip label="🍽️ Essen" active={sortBy === 'avg_food'} onPress={() => setSortBy('avg_food')} />
               <SortChip label="☀️ Terrasse" active={sortBy === 'avg_sun_terrace'} onPress={() => setSortBy('avg_sun_terrace')} />
               <SortChip label="🛖 Einrichtung" active={sortBy === 'avg_interior'} onPress={() => setSortBy('avg_interior')} />

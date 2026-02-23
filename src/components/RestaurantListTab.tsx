@@ -123,11 +123,6 @@ export default function RestaurantListTab({ restaurants }: Props) {
                   onPress={() => setSortBy('avg_service')}
                 />
                 <SortChip
-                  label="💃 Ski-Haserl"
-                  active={sortBy === 'avg_ski_haserl'}
-                  onPress={() => setSortBy('avg_ski_haserl')}
-                />
-                <SortChip
                   label="🍽️ Essen"
                   active={sortBy === 'avg_food'}
                   onPress={() => setSortBy('avg_food')}
@@ -220,7 +215,6 @@ const CategoryBars = memo(function CategoryBars({ stats, highlightKey }: { stats
 
   const categories = [
     { key: 'avg_service', emoji: '🛎️', value: stats.avg_service },
-    { key: 'avg_ski_haserl', emoji: '💃', value: stats.avg_ski_haserl },
     { key: 'avg_food', emoji: '🍽️', value: stats.avg_food },
     { key: 'avg_sun_terrace', emoji: '☀️', value: stats.avg_sun_terrace },
     { key: 'avg_interior', emoji: '🛖', value: stats.avg_interior },

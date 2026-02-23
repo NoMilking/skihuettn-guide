@@ -73,14 +73,13 @@ export default function RatingScreen({ route }: Props) {
     return calculateTotalScore({
       self_service: selfService,
       service,
-      ski_haserl: skiHaserl,
       food,
       sun_terrace: sunTerrace,
       interior,
       apres_ski: apresSki,
       eggnog,
     });
-  }, [selfService, service, skiHaserl, food, sunTerrace, interior, apresSki, eggnog]);
+  }, [selfService, service, food, sunTerrace, interior, apresSki, eggnog]);
 
   const scoreColor = useMemo(() => getScoreColor(totalScore), [totalScore]);
   const scoreBgColor = useMemo(() => getScoreBackgroundColor(totalScore), [totalScore]);
@@ -350,11 +349,6 @@ export default function RatingScreen({ route }: Props) {
             label="🧑‍🍳 Service"
             value={service}
             onChange={setService}
-          />
-          <SliderCategory
-            label="💃 Ski Haserl Alarm"
-            value={skiHaserl}
-            onChange={setSkiHaserl}
           />
           <SliderCategory
             label="🍽️ Essen"
