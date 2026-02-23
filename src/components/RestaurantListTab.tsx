@@ -30,7 +30,7 @@ export default function RestaurantListTab({ restaurants }: Props) {
 
   useEffect(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, [sortBy]);
+  }, [sortBy, onlyService, onlyEggnog, onlySchirmbar]);
 
   // Filter and sort restaurants (memoized)
   const filteredRestaurants = useMemo(() => {
